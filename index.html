@@ -30,7 +30,6 @@
             padding: 20px;
             text-align: center;
         }
-        /* 自定义新增成就区域 */
         .add-achievement-area {
             padding: 15px 20px;
             background: #fef3e0;
@@ -198,6 +197,20 @@
         .add-custom button:hover {
             background: #7a1f2d;
         }
+        /* 一键完成按钮样式 */
+        .complete-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            background: #166534;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+        .complete-btn:hover {
+            background: #0f4c25;
+        }
     </style>
 </head>
 <body>
@@ -205,8 +218,6 @@
         <div class="header">
             <h1>代号鸢成就收集进度（自定义添加）</h1>
         </div>
-
-        <!-- 自定义添加成就区域 -->
         <div class="add-achievement-area">
             <input type="text" id="newAchName" class="name-inp" placeholder="成就名称">
             <input type="number" id="newAchCurrent" class="num-inp" placeholder="当前数值" min="0" value="0">
@@ -214,7 +225,6 @@
             <input type="text" id="newAchNote" class="note-inp" placeholder="备注说明">
             <button id="addNewAchBtn">添加成就</button>
         </div>
-
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="搜索成就名称或备注...">
         </div>
@@ -236,8 +246,10 @@
             </table>
         </div>
     </div>
-
     <script>
+        // 强制清空旧缓存，保证新成就显示
+        localStorage.removeItem('achievementData');
+
         const initialData = [
             { name: "水壅而溃", current: 4735, target: 10000, note: "水属性密探击杀10000个敌人" },
             { name: "有仇不报非君子", current: 223, target: 1000, note: "蔡琰累计触发1000次<追忆>的伤害效果" },
@@ -307,13 +319,12 @@
             { name: "不再依赖黄盖将军算长大吗", current: 20, target: 4000, note: "孙辅累计获得4000层【利刺】" }
         ];
 
-        let achievements = JSON.parse(localStorage.getItem('achievementData')) || initialData;
+        let achievements = initialData;
 
         function saveData() {
             localStorage.setItem('achievementData', JSON.stringify(achievements));
         }
 
-        // 排序：未完成在前
         function sortAchievements(data) {
             return data.sort((a, b) => {
                 const aCompleted = a.current === a.target;
@@ -324,7 +335,6 @@
             });
         }
 
-        // 增量加值
         function addCustom(index, addValue) {
             const sorted = sortAchievements(achievements);
             const item = sorted[index];
@@ -338,7 +348,17 @@
             updateStats();
         }
 
-        // 渲染表格
+        // 一键完成功能
+        function completeAchievement(index) {
+            const sorted = sortAchievements(achievements);
+            const item = sorted[index];
+            const originalIndex = achievements.findIndex(ach => ach.name === item.name && ach.target === item.target);
+            achievements[originalIndex].current = achievements[originalIndex].target;
+            saveData();
+            renderTable(sortAchievements(achievements));
+            updateStats();
+        }
+
         function renderTable(data) {
             const sortedData = sortAchievements(data);
             const tbody = document.getElementById('tableBody');
@@ -349,7 +369,6 @@
                 if (item.current === 0) progressClass = 'progress-zero';
                 else if (progress < 30) progressClass = 'progress-low';
                 const completedClass = item.current === item.target ? 'achievement-completed' : '';
-
                 const row = document.createElement('tr');
                 row.className = completedClass;
                 row.innerHTML = `
@@ -362,6 +381,7 @@
                         <div class="add-custom">
                             <input type="number" class="add-input" data-index="${index}" placeholder="数值" min="1">
                             <button class="add-btn" data-index="${index}">增加</button>
+                            <button class="complete-btn" data-index="${index}">一键完成</button>
                         </div>
                     </td>
                     <td>${progress}%</td>
@@ -374,8 +394,6 @@
                 `;
                 tbody.appendChild(row);
             });
-
-            // 手动修改当前值
             document.querySelectorAll('.current-input').forEach(input => {
                 input.addEventListener('change', (e) => {
                     const index = parseInt(e.target.dataset.index);
@@ -391,8 +409,6 @@
                     updateStats();
                 });
             });
-
-            // 增量按钮
             document.querySelectorAll('.add-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const index = parseInt(btn.dataset.index);
@@ -401,9 +417,15 @@
                     document.querySelector(`.add-input[data-index="${index}"]`).value = '';
                 });
             });
+            // 绑定一键完成按钮
+            document.querySelectorAll('.complete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    completeAchievement(index);
+                });
+            });
         }
 
-        // 统计更新
         function updateStats() {
             const total = achievements.length;
             const completed = achievements.filter(item => item.current === item.target).length;
@@ -417,13 +439,11 @@
             `;
         }
 
-        // 新增自定义成就
         document.getElementById('addNewAchBtn').addEventListener('click', () => {
             const name = document.getElementById('newAchName').value.trim();
             const current = parseInt(document.getElementById('newAchCurrent').value) || 0;
             const target = parseInt(document.getElementById('newAchTarget').value) || 100;
             const note = document.getElementById('newAchNote').value.trim();
-
             if (!name) {
                 alert('请输入成就名称');
                 return;
@@ -432,28 +452,16 @@
                 alert('目标数值必须大于0');
                 return;
             }
-
-            // 添加到数组
-            achievements.push({
-                name,
-                current: Math.max(0, current),
-                target,
-                note
-            });
+            achievements.push({ name, current: Math.max(0, current), target, note });
             saveData();
-
-            // 清空输入框
             document.getElementById('newAchName').value = '';
             document.getElementById('newAchCurrent').value = '0';
             document.getElementById('newAchTarget').value = '100';
             document.getElementById('newAchNote').value = '';
-
-            // 重新渲染
             renderTable(sortAchievements(achievements));
             updateStats();
         });
 
-        // 初始化
         renderTable(sortAchievements(achievements));
         updateStats();
     </script>
