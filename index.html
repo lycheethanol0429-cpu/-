@@ -2,84 +2,405 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>成就系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代号鸢成就收集进度（自定义添加）</title>
     <style>
-        .achievement {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
         }
-        .unlocked {
-            background: #e3f2fd;
-            border-color: #2196f3;
+        body {
+            background: #fdf6e9;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fffaf0;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #d9c5b2;
+        }
+        .header {
+            background: #8B0000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .add-achievement-area {
+            padding: 15px 20px;
+            background: #fef3e0;
+            border-bottom: 1px solid #d9c5b2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .add-achievement-area input {
+            padding: 8px 10px;
+            border: 1px solid #d9c5b2;
+            border-radius: 6px;
+            background: #fffaf0;
+            color: #5c4033;
+            font-size: 14px;
+        }
+        .add-achievement-area input.name-inp {
+            width: 180px;
+        }
+        .add-achievement-area input.num-inp {
+            width: 80px;
+        }
+        .add-achievement-area input.note-inp {
+            flex: 1;
+            min-width: 200px;
+        }
+        .add-achievement-area button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #8B0000;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .add-achievement-area button:hover {
+            background: #7a1f2d;
+        }
+        .search-bar {
+            padding: 15px 20px;
+            background: #faf5e8;
+            border-bottom: 1px solid #d9c5b2;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #d9c5b2;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fffaf0;
+            color: #5c4033;
+        }
+        .stats {
+            padding: 15px 20px;
+            background: #faf5e8;
+            border-bottom: 1px solid #d9c5b2;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: #8c6a56;
+        }
+        .stat-item {
+            font-size: 14px;
+            color: #8c6a56;
+        }
+        .stat-item strong {
+            color: #5c4033;
+            font-size: 16px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: #faf5e8;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #d9c5b2;
+            font-size: 14px;
+        }
+        th {
+            font-weight: 600;
+            color: #5c4033;
+            position: sticky;
+            top: 0;
+            background: #faf5e8;
+            z-index: 10;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e6d5c2;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #166534;
+            border-radius: 4px;
+        }
+        .progress-low .progress-fill {
+            background: #d97706;
+        }
+        .progress-high .progress-fill {
+            background: #166534;
+        }
+        .progress-zero .progress-fill {
+            background: #8B0000;
+        }
+        .note {
+            color: #8c6a56;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        tr:hover {
+            background: #faf5e8;
+        }
+        tr.achievement-completed {
+            opacity: 0.5;
+            color: #999;
+        }
+        tr.achievement-completed:hover {
+            background: #faf5e8;
+            opacity: 0.6;
+        }
+        input.current-input {
+            width: 80px;
+            padding: 4px 6px;
+            border: 1px solid #d9c5b2;
+            border-radius: 4px;
+            text-align: center;
+            background: #fffaf0;
+            color: #5c4033;
+        }
+        .add-custom {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .add-custom input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #d9c5b2;
+            border-radius: 4px;
+            text-align: center;
+            background: #fffaf0;
+            color: #5c4033;
+        }
+        .add-custom button {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            background: #8B0000;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .add-custom button:hover {
+            background: #7a1f2d;
         }
     </style>
 </head>
 <body>
-    <h2>我的成就</h2>
-    <div id="achievementList"></div>
+    <div class="container">
+        <div class="header">
+            <h1>代号鸢成就收集进度（自定义添加）</h1>
+        </div>
+        <div class="add-achievement-area">
+            <input type="text" id="newAchName" class="name-inp" placeholder="成就名称">
+            <input type="number" id="newAchCurrent" class="num-inp" placeholder="当前数值" min="0" value="0">
+            <input type="number" id="newAchTarget" class="num-inp" placeholder="目标数值" min="1" value="100">
+            <input type="text" id="newAchNote" class="note-inp" placeholder="备注说明">
+            <button id="addNewAchBtn">添加成就</button>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="搜索成就名称或备注...">
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="table-wrapper">
+            <table id="achievementTable">
+                <thead>
+                    <tr>
+                        <th>成就名称</th>
+                        <th>当前</th>
+                        <th>目标</th>
+                        <th>操作</th>
+                        <th>完成度</th>
+                        <th>进度条</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
-        // ==============================================
-        // 【已修复】本地双击打开也能永久保存成就数据
-        // 刷新、关闭、重开都不会丢！
-        // ==============================================
-        let achievementData = {};
+        const STORAGE_KEY = "daiyuan_achievement_data";
+        let achievementList = [];
 
-        // 初始化所有成就（在这里添加你的成就）
-        const allAchievements = [
-            { id: 1, name: "第一次完成任务" },
-            { id: 2, name: "连续登录3天" },
-            { id: 3, name: "收集全部道具" },
-            { id: 4, name: "通关困难模式" },
-            { id: 5, name: "隐藏成就解锁" }
+        const initialData = [
+            { name: "水壅而溃", current: 4735, target: 10000, note: "水属性密探击杀10000个敌人" },
+            { name: "有仇不报非君子", current: 223, target: 1000, note: "蔡琰累计触发1000次<追忆>的伤害效果" },
+            { name: "他为鱼肉", current: 396, target: 500, note: "程昱累计释放500次【麻醉】" },
+            { name: "你好，打劫", current: 62, target: 100, note: "黄月英释放100次【固守玉门】" },
+            { name: "叮铃铃铃铃铃！", current: 62, target: 500, note: "黄月英释放500次【固守玉门】" },
+            { name: "哥你支楞一下啊！", current: 457, target: 500, note: "诸葛诞和诸葛瑾累计使用500次合体技" },
+            { name: "经达权变", current: 188, target: 500, note: "荀攸累计移除防御状态500次" },
+            { name: "算无遗策", current: 188, target: 1000, note: "荀攸累计移除防御状态1000次" },
+            { name: "断生老之苦趣", current: 114, target: 500, note: "满宠累计触发500次<罪无可恕>" },
+            { name: "秉生死之权操", current: 114, target: 1500, note: "满宠累计触发1500次<罪无可恕>" },
+            { name: "影分身", current: 201, target: 500, note: "戏学累计召唤分身500次" },
+            { name: "替死鬼都累了", current: 201, target: 1000, note: "戏学累计召唤分身1000次" },
+            { name: "以父之名", current: 564, target: 1000, note: "马腾累计触发1000次<玄甲衣>的反击效果" },
+            { name: "很阳间呢！", current: 0, target: 1000, note: "朱然持有【阳之铜】获得1000场胜利" },
+            { name: "好阴间哦……", current: 26, target: 1000, note: "朱然持有【阴之铜】获得1000场胜利" },
+            { name: "索命", current: 67, target: 100, note: "黄盖削减敌人生命上限直到不可再削减的次数达到100次" },
+            { name: "啊哇大索命", current: 67, target: 300, note: "黄盖削减敌人生命上限直到不可再削减的次数达到300次" },
+            { name: "史君也会打人了", current: 993, target: 1000, note: "史子眇·赴烛累计转换为【道者形】1000次" },
+            { name: "狼道", current: 454, target: 500, note: "张绣累计获得500次【狼聚】" },
+            { name: "狼人杀", current: 454, target: 1500, note: "张绣累计获得1500次【狼聚】" },
+            { name: "没眼看", current: 1, target: 100, note: "董白累计成功触发【晦盲】中的效果100次" },
+            { name: "回头是暗", current: 1, target: 300, note: "董白累计成功触发【晦盲】中的效果300次" },
+            { name: "冷冷的霰雨", current: 0, target: 500, note: "累计触发500次【云涌】与【冰封】的天人感应效果" },
+            { name: "在敌人脸上胡乱地拍", current: 0, target: 1500, note: "累计触发1500次【云涌】与【冰封】的天人感应效果" },
+            { name: "扩展装备栏", current: 322, target: 1000, note: "程普累计给队友1000把【兵器】" },
+            { name: "万物皆虚", current: 75, target: 600, note: "虞翻累计为敌人附加600次【断肠草】" },
+            { name: "万事皆允", current: 75, target: 1500, note: "虞翻累计为敌人附加1500次【断肠草】" },
+            { name: "年年带兵来打劫", current: 231, target: 500, note: "张燕使敌方获得【啄矢】500次" },
+            { name: "妙才好累", current: 44, target: 600, note: "夏侯渊累计进入600次【竭力】状态" },
+            { name: "妙才累坏了", current: 44, target: 1500, note: "夏侯渊累计进入1500次【竭力】状态" },
+            { name: "主上一切安好", current: 558, target: 1000, note: "刘璋累计获得【提防】1000次" },
+            { name: "死后自会长眠", current: 886, target: 1500, note: "周忠累计进入1500次【酣睡】状态" },
+            { name: "父愁者联盟", current: 587, target: 1000, note: "吕布累计获得1000次【霸道】状态" },
+            { name: "老臣真的想退休", current: 0, target: 200, note: "简雍获得【伤疤】200次" },
+            { name: "老臣绝赞摆谱中……", current: 0, target: 500, note: "简雍获得【伤疤】500次" },
+            { name: "工作的时候要称职务", current: 159, target: 500, note: "曹丕累计触发500次<收割>" },
+            { name: "就算是鬼神我也拔刀杀给你看", current: 159, target: 1500, note: "曹丕累计触发1500次<收割>" },
+            { name: "爆炸就是艺术！", current: 986, target: 1000, note: "司马徽消耗【水镜】1000个" },
+            { name: "姐就是女王", current: 0, target: 200, note: "郭女王累计引爆200次<张仲剑>" },
+            { name: "为什么就是不明白啊？！为什么——", current: 0, target: 500, note: "郭女王累计引爆500次<张仲剑>" },
+            { name: "好运接接接", current: 88, target: 100, note: "蒯良的【拂尘】存储达到上限100次" },
+            { name: "人生的尽头果然是玄学", current: 88, target: 500, note: "蒯良的【拂尘】存储达到上限500次" },
+            { name: "我是自愿上班的", current: 359, target: 1000, note: "累计使用密探技能1000次" },
+            { name: "化劲", current: 20, target: 100, note: "华佗累计为队友抵挡100次致命伤害" },
+            { name: "抱朴守真", current: 20, target: 300, note: "华佗累计为队友抵挡300次致命伤害" }
         ];
 
-        // 读取本地保存的数据
-        function loadAchievementData() {
+        function loadSavedData() {
             try {
-                const data = localStorage.getItem("myGameAchievements");
-                if (data) achievementData = JSON.parse(data);
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    achievementList = JSON.parse(saved);
+                } else {
+                    achievementList = [...initialData];
+                }
             } catch (e) {
-                achievementData = {};
+                achievementList = [...initialData];
             }
         }
 
-        // 保存到本地（核心修复）
         function saveData() {
             try {
-                localStorage.setItem("myGameAchievements", JSON.stringify(achievementData));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(achievementList));
             } catch (e) {}
         }
 
-        // 解锁 / 锁定成就（你改成就只用这个）
-        function setAchievement(id, isUnlocked) {
-            loadAchievementData();
-            achievementData[id] = isUnlocked;
+        function updateProgressUI(index, current) {
+            const item = achievementList[index];
+            item.current = Math.max(0, Number(current) || 0);
             saveData();
-            renderList();
-            console.log("✅ 成就已保存！编号：" + id);
+            renderTable();
         }
 
-        // 渲染页面
-        function renderList() {
-            const list = document.getElementById("achievementList");
-            list.innerHTML = "";
-
-            allAchievements.forEach(ach => {
-                const unlocked = achievementData[ach.id] === true;
-                const div = document.createElement("div");
-                div.className = "achievement " + (unlocked ? "unlocked" : "");
-                div.innerText = ach.id + "、" + ach.name + (unlocked ? " ✅ 已解锁" : " 🔒 未解锁");
-                div.onclick = () => setAchievement(ach.id, !unlocked); // 点一下就能改成就
-                list.appendChild(div);
+        function addNewAchievement(name, current, target, note) {
+            if (!name) return;
+            achievementList.push({
+                name: name,
+                current: Number(current) || 0,
+                target: Number(target) || 100,
+                note: note || ""
             });
+            saveData();
+            renderTable();
+            document.getElementById("newAchName").value = "";
+            document.getElementById("newAchCurrent").value = "0";
+            document.getElementById("newAchTarget").value = "100";
+            document.getElementById("newAchNote").value = "";
         }
 
-        // 页面打开自动加载
+        function renderTable(keyword = "") {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+            let total = 0;
+            let completed = 0;
+            let filtered = achievementList.filter(item => {
+                return item.name.includes(keyword) || (item.note && item.note.includes(keyword));
+            });
+            filtered.forEach((item, idx) => {
+                total++;
+                const c = Math.min(item.current, item.target);
+                const t = item.target;
+                const percent = t > 0 ? (c / t) * 100 : 0;
+                const done = percent >= 100;
+                if (done) completed++;
+                const tr = document.createElement("tr");
+                if (done) tr.classList.add("achievement-completed");
+                let progressClass = "";
+                if (c === 0) progressClass = "progress-zero";
+                else if (percent < 50) progressClass = "progress-low";
+                else progressClass = "progress-high";
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>
+                        <input type="number" class="current-input" value="${c}" min="0" 
+                            onchange="updateProgressUI(${achievementList.findIndex(a=>a.name==='${item.name.replace(/'/g,"\\'")}'), this.value)">
+                    </td>
+                    <td>${t}</td>
+                    <td>
+                        <div class="add-custom">
+                            <input type="number" placeholder="增减" id="adjust_${idx}">
+                            <button onclick="adjustValue(${achievementList.findIndex(a=>a.name==='${item.name.replace(/'/g,"\\'")}')})">修改</button>
+                        </div>
+                    </td>
+                    <td>${percent.toFixed(1)}%</td>
+                    <td>
+                        <div class="progress-bar ${progressClass}">
+                            <div class="progress-fill" style="width:${percent}%"></div>
+                        </div>
+                    </td>
+                    <td class="note">${item.note || ""}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById("stats").innerHTML = `
+                <div class="stat-item">总成就：<strong>${total}</strong></div>
+                <div class="stat-item">已完成：<strong>${completed}</strong></div>
+                <div class="stat-item">完成率：<strong>${total > 0 ? ((completed / total) * 100).toFixed(1) : 0}%</strong></div>
+            `;
+        }
+
+        function adjustValue(index) {
+            const input = document.querySelector(`#adjust_${index}`);
+            const num = Number(input.value) || 0;
+            if (!num) return;
+            achievementList[index].current = Math.max(0, (achievementList[index].current || 0) + num);
+            input.value = "";
+            saveData();
+            renderTable(document.getElementById("searchInput").value);
+        }
+
         window.onload = function () {
-            loadAchievementData();
-            renderList();
+            loadSavedData();
+            renderTable();
+            document.getElementById("addNewAchBtn").onclick = () => {
+                const name = document.getElementById("newAchName").value.trim();
+                const curr = document.getElementById("newAchCurrent").value.trim();
+                const tgt = document.getElementById("newAchTarget").value.trim();
+                const note = document.getElementById("newAchNote").value.trim();
+                addNewAchievement(name, curr, tgt, note);
+            };
+            document.getElementById("searchInput").oninput = (e) => {
+                renderTable(e.target.value.trim());
+            };
         };
     </script>
 </body>
