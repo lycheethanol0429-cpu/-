@@ -235,7 +235,7 @@
 
     <script>
         const STORAGE_KEY = "daiyuan_achievement_data";
-        let achievementList = [];
+        let achievements = [];
 
         const initialData = [
             { name: "水壅而溃", current: 4735, target: 10000, note: "水属性密探击杀10000个敌人" },
@@ -279,129 +279,161 @@
             { name: "姐就是女王", current: 0, target: 200, note: "郭女王累计引爆200次<张仲剑>" },
             { name: "为什么就是不明白啊？！为什么——", current: 0, target: 500, note: "郭女王累计引爆500次<张仲剑>" },
             { name: "好运接接接", current: 88, target: 100, note: "蒯良的【拂尘】存储达到上限100次" },
-            { name: "人生的尽头果然是玄学", current: 88, target: 500, note: "蒯良的【拂尘】存储达到上限500次" },
-            { name: "我是自愿上班的", current: 359, target: 1000, note: "累计使用密探技能1000次" },
-            { name: "化劲", current: 20, target: 100, note: "华佗累计为队友抵挡100次致命伤害" },
-            { name: "抱朴守真", current: 20, target: 300, note: "华佗累计为队友抵挡300次致命伤害" }
+            { name: "人生的尽头果然是玄学", current: 88, target: 300, note: "蒯良的【拂尘】存储达到上限300次" },
+            { name: "九幽之影，环绕吾身", current: 365, target: 500, note: "法正累计获得500次秘器或神器品级的圣物" },
+            { name: "山崩之力，侵蚀吾魂", current: 365, target: 1000, note: "法正累计获得1000次秘器或神器品级的圣物" },
+            { name: "补药鼠", current: 445, target: 1500, note: "陈群帮助队友进入防御状态1500次" },
+            { name: "不会鼠的放心吧！", current: 445, target: 5000, note: "陈群帮助队友进入防御状态5000次" },
+            { name: "骨肉相连相交又相缠", current: 59, target: 100, note: "携带酆公玖与酆公珠完成战斗100场" },
+            { name: "坏女人就要搭配好男人", current: 59, target: 500, note: "携带酆公玖与酆公珠完成战斗500场" },
+            { name: "我们变身不需要腰带", current: 56, target: 200, note: "酆公玖和酆公珠合体为<双蛇>后累计切换200次形态" },
+            { name: "启动超级变换形态！", current: 56, target: 1000, note: "酆公玖和酆公珠合体为<双蛇>后累计切换1000次形态" },
+            { name: "当断则断", current: 0, target: 500, note: "累计<击碎>拥有【断】的目标500次" },
+            { name: "奇变偶不变，沙场斩杀线", current: 0, target: 1500, note: "累计<击碎>拥有【断】的目标1500次" },
+            { name: "传奇演绎", current: 7, target: 200, note: "卢植累计演奏200次乐曲" },
+            { name: "音乐巨匠", current: 7, target: 500, note: "卢植累计演奏500次乐曲" },
+            { name: "掉千字书袋", current: 567, target: 5000, note: "累计消耗【文墨】5000个" },
+            { name: "招真心笔友", current: 567, target: 15000, note: "累计消耗【文墨】15000个" },
+            { name: "东阳在下雨", current: 0, target: 300, note: "累计触发300次【雾隐】与【霰雨】的天人感应效果" },
+            { name: "衫穷水浸梅雨季", current: 0, target: 1000, note: "累计触发1000次【雾隐】与【霰雨】的天人感应效果" },
+            { name: "仙胎的嚼嚼者", current: 4, target: 100, note: "孟获累计吞吃【仙胎】100个" },
+            { name: "暴风吸入绝绝子", current: 4, target: 500, note: "孟获累计吞吃【仙胎】500个" },
+            { name: "剑骨", current: 0, target: 500, note: "孙静累计获得500层【白猿剑】" },
+            { name: "血是铁疙瘩", current: 0, target: 1000, note: "孙静累计获得1000层【白猿剑】" },
+            { name: "喜怒不形羽色", current: 34, target: 1500, note: "张松累计获得1500层【毫羽】" },
+            { name: "翻手为云覆手为羽", current: 34, target: 5000, note: "张松累计获得5000层【毫羽】" },
+            { name: "年轻人下手没轻没重的", current: 20, target: 2000, note: "孙辅累计获得2000层【利刺】" },
+            { name: "不再依赖黄盖将军算长大吗", current: 20, target: 4000, note: "孙辅累计获得4000层【利刺】" }
         ];
 
-        function loadSavedData() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    achievementList = JSON.parse(saved);
-                } else {
-                    achievementList = [...initialData];
-                }
-            } catch (e) {
-                achievementList = [...initialData];
-            }
+        // 读写本地存储
+        function saveData(){
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(achievements));
+        }
+        function loadData(){
+            let d = localStorage.getItem(STORAGE_KEY);
+            if(d) achievements = JSON.parse(d);
+            else achievements = [...initialData];
         }
 
-        function saveData() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(achievementList));
-            } catch (e) {}
-        }
-
-        function updateProgressUI(index, current) {
-            const item = achievementList[index];
-            item.current = Math.max(0, Number(current) || 0);
-            saveData();
-            renderTable();
-        }
-
-        function addNewAchievement(name, current, target, note) {
-            if (!name) return;
-            achievementList.push({
-                name: name,
-                current: Number(current) || 0,
-                target: Number(target) || 100,
-                note: note || ""
+        // 排序：未完成在前
+        function sortAchievements(arr){
+            return arr.sort((a,b)=>{
+                let aDone = a.current >= a.target;
+                let bDone = b.current >= b.target;
+                if(aDone && !bDone) return 1;
+                if(!aDone && bDone) return -1;
+                return 0;
             });
+        }
+
+        // 渲染表格
+        function render(keyword=""){
+            let tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+
+            let filter = achievements.filter(x=>
+                x.name.includes(keyword) || x.note.includes(keyword)
+            );
+
+            sortAchievements(filter).forEach((item, idx)=>{
+                let pct = (item.current / item.target * 100).toFixed(2);
+                let cls = "progress-high";
+                if(item.current === 0) cls = "progress-zero";
+                else if(pct < 30) cls = "progress-low";
+
+                let row = document.createElement("tr");
+                if(item.current >= item.target) row.classList.add("achievement-completed");
+
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td><input class="current-input" data-idx="${idx}" value="${item.current}" min="0" max="${item.target}"></td>
+                    <td>${item.target}</td>
+                    <td>
+                        <div class="add-custom">
+                            <input class="add-val" data-idx="${idx}" type="number" min="1" placeholder="数值">
+                            <button class="add-btn" data-idx="${idx}">增加</button>
+                        </div>
+                    </td>
+                    <td>${pct}%</td>
+                    <td><div class="progress-bar ${cls}"><div class="progress-fill" style="width:${pct}%"></div></div></td>
+                    <td class="note">${item.note}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // 统计
+            let total = achievements.length;
+            let done = achievements.filter(x=>x.current>=x.target).length;
+            let ing = achievements.filter(x=>x.current>0 && x.current<x.target).length;
+            let none = achievements.filter(x=>x.current===0).length;
+            document.getElementById("stats").innerHTML = `
+                <div class="stat-item"><strong>总成就数：</strong>${total}</div>
+                <div class="stat-item"><strong>已完成：</strong>${done}</div>
+                <div class="stat-item"><strong>进行中：</strong>${ing}</div>
+                <div class="stat-item"><strong>未开始：</strong>${none}</div>
+            `;
+        }
+
+        // 绑定所有事件
+        function bindEvent(){
+            // 手动修改当前值
+            document.querySelectorAll(".current-input").forEach(inp=>{
+                inp.addEventListener("change", ()=>{
+                    let i = Number(inp.dataset.idx);
+                    let val = Math.max(0, Math.min(achievements[i].target, Number(inp.value)||0));
+                    achievements[i].current = val;
+                    saveData();
+                    render(document.getElementById("searchInput").value);
+                });
+            });
+
+            // 增量按钮
+            document.querySelectorAll(".add-btn").forEach(btn=>{
+                btn.addEventListener("click", ()=>{
+                    let i = Number(btn.dataset.idx);
+                    let inp = document.querySelector(`.add-val[data-idx="${i}"]`);
+                    let num = Number(inp.value)||0;
+                    if(num<=0) return;
+                    achievements[i].current = Math.min(achievements[i].target, achievements[i].current + num);
+                    saveData();
+                    inp.value = "";
+                    render(document.getElementById("searchInput").value);
+                });
+            });
+        }
+
+        // 新增成就
+        document.getElementById("addNewAchBtn").addEventListener("click", ()=>{
+            let name = document.getElementById("newAchName").value.trim();
+            let curr = Number(document.getElementById("newAchCurrent").value)||0;
+            let tgt = Number(document.getElementById("newAchTarget").value)||100;
+            let note = document.getElementById("newAchNote").value.trim();
+
+            if(!name){alert("请输入成就名称");return;}
+            if(tgt<1){alert("目标数值必须大于0");return;}
+
+            achievements.push({name, current:curr, target:tgt, note});
             saveData();
-            renderTable();
+
             document.getElementById("newAchName").value = "";
             document.getElementById("newAchCurrent").value = "0";
             document.getElementById("newAchTarget").value = "100";
             document.getElementById("newAchNote").value = "";
-        }
 
-        function renderTable(keyword = "") {
-            const tbody = document.getElementById("tableBody");
-            tbody.innerHTML = "";
-            let total = 0;
-            let completed = 0;
-            let filtered = achievementList.filter(item => {
-                return item.name.includes(keyword) || (item.note && item.note.includes(keyword));
-            });
-            filtered.forEach((item, idx) => {
-                total++;
-                const c = Math.min(item.current, item.target);
-                const t = item.target;
-                const percent = t > 0 ? (c / t) * 100 : 0;
-                const done = percent >= 100;
-                if (done) completed++;
-                const tr = document.createElement("tr");
-                if (done) tr.classList.add("achievement-completed");
-                let progressClass = "";
-                if (c === 0) progressClass = "progress-zero";
-                else if (percent < 50) progressClass = "progress-low";
-                else progressClass = "progress-high";
-                tr.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>
-                        <input type="number" class="current-input" value="${c}" min="0" 
-                            onchange="updateProgressUI(${achievementList.findIndex(a=>a.name==='${item.name.replace(/'/g,"\\'")}'), this.value)">
-                    </td>
-                    <td>${t}</td>
-                    <td>
-                        <div class="add-custom">
-                            <input type="number" placeholder="增减" id="adjust_${idx}">
-                            <button onclick="adjustValue(${achievementList.findIndex(a=>a.name==='${item.name.replace(/'/g,"\\'")}')})">修改</button>
-                        </div>
-                    </td>
-                    <td>${percent.toFixed(1)}%</td>
-                    <td>
-                        <div class="progress-bar ${progressClass}">
-                            <div class="progress-fill" style="width:${percent}%"></div>
-                        </div>
-                    </td>
-                    <td class="note">${item.note || ""}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            document.getElementById("stats").innerHTML = `
-                <div class="stat-item">总成就：<strong>${total}</strong></div>
-                <div class="stat-item">已完成：<strong>${completed}</strong></div>
-                <div class="stat-item">完成率：<strong>${total > 0 ? ((completed / total) * 100).toFixed(1) : 0}%</strong></div>
-            `;
-        }
+            render("");
+        });
 
-        function adjustValue(index) {
-            const input = document.querySelector(`#adjust_${index}`);
-            const num = Number(input.value) || 0;
-            if (!num) return;
-            achievementList[index].current = Math.max(0, (achievementList[index].current || 0) + num);
-            input.value = "";
-            saveData();
-            renderTable(document.getElementById("searchInput").value);
-        }
+        // 搜索
+        document.getElementById("searchInput").addEventListener("input", e=>{
+            render(e.target.value.trim());
+        });
 
-        window.onload = function () {
-            loadSavedData();
-            renderTable();
-            document.getElementById("addNewAchBtn").onclick = () => {
-                const name = document.getElementById("newAchName").value.trim();
-                const curr = document.getElementById("newAchCurrent").value.trim();
-                const tgt = document.getElementById("newAchTarget").value.trim();
-                const note = document.getElementById("newAchNote").value.trim();
-                addNewAchievement(name, curr, tgt, note);
-            };
-            document.getElementById("searchInput").oninput = (e) => {
-                renderTable(e.target.value.trim());
-            };
-        };
+        // 初始化
+        loadData();
+        render("");
+        // 等DOM渲染完再绑定事件
+        setTimeout(bindEvent,100);
     </script>
 </body>
 </html>
