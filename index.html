@@ -202,7 +202,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>代号鸢成就收集进度（自定义添加）</h1>
+            <h1>代号鸢成就收集进度</h1>
         </div>
         <div class="add-achievement-area">
             <input type="text" id="newAchName" class="name-inp" placeholder="成就名称">
@@ -306,17 +306,14 @@
             { name: "不再依赖黄盖将军算长大吗", current: 20, target: 4000, note: "孙辅累计获得4000层【利刺】" }
         ];
 
-        // 读写本地存储
         function saveData(){
             localStorage.setItem(STORAGE_KEY, JSON.stringify(achievements));
         }
         function loadData(){
             let d = localStorage.getItem(STORAGE_KEY);
-            if(d) achievements = JSON.parse(d);
-            else achievements = [...initialData];
+            achievements = d ? JSON.parse(d) : [...initialData];
         }
 
-        // 排序：未完成在前
         function sortAchievements(arr){
             return arr.sort((a,b)=>{
                 let aDone = a.current >= a.target;
@@ -327,32 +324,24 @@
             });
         }
 
-        // 渲染表格
         function render(keyword=""){
             let tbody = document.getElementById("tableBody");
             tbody.innerHTML = "";
-
-            let filter = achievements.filter(x=>
-                x.name.includes(keyword) || x.note.includes(keyword)
-            );
+            let filter = achievements.filter(x=>x.name.includes(keyword) || x.note.includes(keyword));
 
             sortAchievements(filter).forEach((item, idx)=>{
                 let pct = (item.current / item.target * 100).toFixed(2);
-                let cls = "progress-high";
-                if(item.current === 0) cls = "progress-zero";
-                else if(pct < 30) cls = "progress-low";
-
+                let cls = item.current===0 ? "progress-zero" : (pct<30 ? "progress-low" : "progress-high");
                 let row = document.createElement("tr");
                 if(item.current >= item.target) row.classList.add("achievement-completed");
-
                 row.innerHTML = `
                     <td>${item.name}</td>
-                    <td><input class="current-input" data-idx="${idx}" value="${item.current}" min="0" max="${item.target}"></td>
+                    <td><input class="current-input" data-rowidx="${idx}" value="${item.current}" min="0" max="${item.target}"></td>
                     <td>${item.target}</td>
                     <td>
                         <div class="add-custom">
-                            <input class="add-val" data-idx="${idx}" type="number" min="1" placeholder="数值">
-                            <button class="add-btn" data-idx="${idx}">增加</button>
+                            <input class="add-val" data-rowidx="${idx}" type="number" min="1" placeholder="数值">
+                            <button class="add-btn" data-rowidx="${idx}">增加</button>
                         </div>
                     </td>
                     <td>${pct}%</td>
@@ -362,7 +351,6 @@
                 tbody.appendChild(row);
             });
 
-            // 统计
             let total = achievements.length;
             let done = achievements.filter(x=>x.current>=x.target).length;
             let ing = achievements.filter(x=>x.current>0 && x.current<x.target).length;
@@ -375,33 +363,28 @@
             `;
         }
 
-        // 绑定所有事件
-        function bindEvent(){
-            // 手动修改当前值
-            document.querySelectorAll(".current-input").forEach(inp=>{
-                inp.addEventListener("change", ()=>{
-                    let i = Number(inp.dataset.idx);
-                    let val = Math.max(0, Math.min(achievements[i].target, Number(inp.value)||0));
-                    achievements[i].current = val;
-                    saveData();
-                    render(document.getElementById("searchInput").value);
-                });
-            });
+        // 事件委托 一次性绑定所有动态元素
+        document.getElementById("tableBody").addEventListener("change", e=>{
+            if(e.target.classList.contains("current-input")){
+                let idx = Number(e.target.dataset.rowidx);
+                let val = Math.max(0, Math.min(achievements[idx].target, Number(e.target.value)||0));
+                achievements[idx].current = val;
+                saveData();
+                render(document.getElementById("searchInput").value);
+            }
+        });
 
-            // 增量按钮
-            document.querySelectorAll(".add-btn").forEach(btn=>{
-                btn.addEventListener("click", ()=>{
-                    let i = Number(btn.dataset.idx);
-                    let inp = document.querySelector(`.add-val[data-idx="${i}"]`);
-                    let num = Number(inp.value)||0;
-                    if(num<=0) return;
-                    achievements[i].current = Math.min(achievements[i].target, achievements[i].current + num);
-                    saveData();
-                    inp.value = "";
-                    render(document.getElementById("searchInput").value);
-                });
-            });
-        }
+        document.getElementById("tableBody").addEventListener("click", e=>{
+            if(e.target.classList.contains("add-btn")){
+                let idx = Number(e.target.dataset.rowidx);
+                let inp = document.querySelector(`.add-val[data-rowidx="${idx}"]`);
+                let num = Number(inp.value)||0;
+                if(num<=0) return;
+                achievements[idx].current = Math.min(achievements[idx].target, achievements[idx].current + num);
+                saveData();
+                render(document.getElementById("searchInput").value);
+            }
+        });
 
         // 新增成就
         document.getElementById("addNewAchBtn").addEventListener("click", ()=>{
@@ -409,18 +392,14 @@
             let curr = Number(document.getElementById("newAchCurrent").value)||0;
             let tgt = Number(document.getElementById("newAchTarget").value)||100;
             let note = document.getElementById("newAchNote").value.trim();
-
             if(!name){alert("请输入成就名称");return;}
             if(tgt<1){alert("目标数值必须大于0");return;}
-
             achievements.push({name, current:curr, target:tgt, note});
             saveData();
-
             document.getElementById("newAchName").value = "";
             document.getElementById("newAchCurrent").value = "0";
             document.getElementById("newAchTarget").value = "100";
             document.getElementById("newAchNote").value = "";
-
             render("");
         });
 
@@ -432,8 +411,6 @@
         // 初始化
         loadData();
         render("");
-        // 等DOM渲染完再绑定事件
-        setTimeout(bindEvent,100);
     </script>
 </body>
 </html>
